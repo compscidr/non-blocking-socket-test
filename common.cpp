@@ -36,6 +36,10 @@ std::string sockaddr_to_string(const struct sockaddr *sa)
  * Calls recv until expected_bytes are received. There should be enough
  * room in the buffer provided to receive all of the expected bytes.
  *
+ * Todo: should probably add a timeout mechanism here so that if the other side
+ * starts sending and doesn't send the whole amount, it times out so we don't
+ * get stuck.
+ *
  * @param socket the socket to receive from
  * @param buffer the buffer to receive the bytes into
  * @param expected_bytes the amount of bytes to receive
@@ -55,7 +59,9 @@ long recv_bytes(int socket, char * buffer, long expected_bytes) {
 }
 
 /**
- * Receive an unsigned int from the socket
+ * Receive an unsigned int from the socket. Converts from network byte ordering
+ * to host byte ordering and returns the int which was received.
+ *
  * @param socket the socket to recv from
  * @return the unsigned integer, or -1 if failure
  */
@@ -91,6 +97,12 @@ long send_bytes(int socket, const char * buffer, int length) {
   return total_sent;
 }
 
+/**
+ * Converts the int to network byte ordering and sends it.
+ * @param socket the socket to send on
+ * @param value the int to send
+ * @return the number of bytes sent (should be size of int)
+ */
 int send_uint(int socket, uint32_t value) {
   char buffer[sizeof(int)] = {};
   int net_value = htonl(value);
